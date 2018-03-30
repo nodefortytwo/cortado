@@ -3,14 +3,18 @@ package main
 import (
 	"fmt"
 	"log"
+	"math/rand"
 	"os"
 	"os/exec"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+
+	"github.com/c-bata/go-prompt"
 )
 
 func main() {
@@ -20,24 +24,25 @@ func main() {
 		Region: aws.String("eu-west-1")},
 	)
 
-	// Create S3 service client
-	svc := s3.New(sess)
-
-	bucket := os.Args[1]
-	prefix := os.Args[2]
-
-	// Get the list of items
-	resp, err := svc.ListObjects(&s3.ListObjectsInput{Bucket: aws.String(bucket), Prefix: aws.String(prefix)})
 	if err != nil {
-		exitErrorf("Unable to list items in bucket %q, %v", bucket, err)
+		exitErrorf("Unable load config")
 	}
 
-	key := *resp.Contents[0].Key
+	bucket := os.Args[1]
 
-	fpath := os.TempDir() + "cortado"
+	var prefix string
+	if len(os.Args) == 3 {
+		prefix = os.Args[2]
+	}
+
+	key := selectKey(bucket, prefix, sess)
+
+	fpath := os.TempDir() + randString(10)
+
 	downloadFile(bucket, key, fpath, sess)
 	editFile(fpath)
 	uploadFile(bucket, key, fpath, sess)
+	os.Remove(fpath)
 
 }
 
@@ -101,4 +106,54 @@ func uploadFile(bucket string, key string, fpath string, sess client.ConfigProvi
 	}
 
 	fmt.Printf("Successfully uploaded %q to %q\n", key, bucket)
+}
+
+func selectKey(bucket string, prefix string, sess client.ConfigProvider) string {
+	// Create S3 service client
+	svc := s3.New(sess)
+	// Get the list of items
+	resp, err := svc.ListObjects(&s3.ListObjectsInput{Bucket: aws.String(bucket), Prefix: aws.String(prefix)})
+	if err != nil {
+		exitErrorf("Unable to list items in bucket %q, %v", bucket, err)
+	}
+
+	var key string
+
+	if len(resp.Contents) == 0 {
+		panic("no matches")
+	} else if len(resp.Contents) > 1 {
+		fmt.Println("Please start typing key")
+		key = prompt.Input("> ", buildCompleter(resp.Contents))
+	} else {
+		key = *resp.Contents[0].Key
+	}
+
+	return key
+}
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
+
+func randString(n int) string {
+	var letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = letterRunes[rand.Intn(len(letterRunes))]
+	}
+	return string(b)
+}
+
+func buildCompleter(contents []*s3.Object) func(d prompt.Document) []prompt.Suggest {
+
+	return func(d prompt.Document) []prompt.Suggest {
+		s := []prompt.Suggest{}
+
+		for _, obj := range contents {
+			suggestion := prompt.Suggest{Text: *obj.Key}
+			s = append(s, suggestion)
+		}
+
+		return prompt.FilterHasPrefix(s, d.GetWordBeforeCursor(), true)
+	}
 }

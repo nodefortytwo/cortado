@@ -38,6 +38,12 @@
   version = "v1.13.23"
 
 [[projects]]
+  name = "github.com/c-bata/go-prompt"
+  packages = ["."]
+  revision = "e99fbc797b795e0a7a94affc8d44f6a0350d85f0"
+  version = "v0.2.1"
+
+[[projects]]
   name = "github.com/go-ini/ini"
   packages = ["."]
   revision = "6333e38ac20b8949a8dd68baa3650f4dee8f39f0"
@@ -48,9 +54,39 @@
   packages = ["."]
   revision = "0b12d6b5"
 
+[[projects]]
+  name = "github.com/mattn/go-colorable"
+  packages = ["."]
+  revision = "167de6bfdfba052fa6b2d3664c8f5272e23c9072"
+  version = "v0.0.9"
+
+[[projects]]
+  name = "github.com/mattn/go-isatty"
+  packages = ["."]
+  revision = "0360b2af4f38e8d38c7fce2a9f4e702702d73a39"
+  version = "v0.0.3"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/mattn/go-tty"
+  packages = ["."]
+  revision = "931426f7535ac39720c8909d70ece5a41a2502a6"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/pkg/term"
+  packages = ["termios"]
+  revision = "b1f72af2d63057363398bec5873d16a98b453312"
+
+[[projects]]
+  branch = "master"
+  name = "golang.org/x/sys"
+  packages = ["unix"]
+  revision = "378d26f46672a356c46195c28f61bdb4c0a781dd"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "6f0faa827e8b059247ae61a013223bcd1a048d02e78e915ae24b23f2cf97e463"
+  inputs-digest = "b83bb602d9e520d5af52a8dbfd0e842bf93ef32c9cc84c8eb0ed513c53255a0b"
   solver-name = "gps-cdcl"
   solver-version = 1
