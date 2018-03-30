@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 )
 
 func main() {
@@ -29,16 +30,46 @@ func main() {
 		exitErrorf("Unable to list items in bucket %q, %v", bucket, err)
 	}
 
-	for _, item := range resp.Contents {
-		fmt.Println("Name:         ", *item.Key)
-		fmt.Println("Last modified:", *item.LastModified)
-		fmt.Println("Size:         ", *item.Size)
-		fmt.Println("Storage class:", *item.StorageClass)
-		fmt.Println("")
+	fpath := os.TempDir() + "cortado"
+	fmt.Println(fpath)
+	file, err := os.Create(fpath)
+	if err != nil {
+		exitErrorf("Unable to open file %q, %v", err)
 	}
 
-	fmt.Println("Found", len(resp.Contents), "items in bucket", bucket)
+	downloader := s3manager.NewDownloader(sess)
+	item := *resp.Contents[0].Key
+
+	numBytes, err := downloader.Download(file,
+		&s3.GetObjectInput{
+			Bucket: aws.String(bucket),
+			Key:    aws.String(item),
+		})
+	if err != nil {
+		exitErrorf("Unable to download item %q, %v", item, err)
+	}
+
+	file.Close()
+
+	fmt.Println("downloaded", numBytes)
 	fmt.Println("")
+
+	editFile(fpath)
+
+	file, err = os.Open(fpath)
+
+	uploader := s3manager.NewUploader(sess)
+
+	_, err = uploader.Upload(&s3manager.UploadInput{
+		Bucket: aws.String(bucket),
+		Key:    aws.String(item),
+		Body:   file,
+	})
+	if err != nil {
+		exitErrorf("Unable to upload %q to %q, %v", item, bucket, err)
+	}
+
+	fmt.Printf("Successfully uploaded %q to %q\n", item, bucket)
 
 }
 
@@ -48,20 +79,13 @@ func exitErrorf(msg string, args ...interface{}) {
 }
 
 func editFile(fpath string) {
-	f, err := os.Create(fpath)
-	if err != nil {
-		log.Printf("1")
-		log.Fatal(err)
-	}
-	f.Close()
-
 	cmd := exec.Command("vim", fpath)
 
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	err = cmd.Start()
+	err := cmd.Start()
 	if err != nil {
 		log.Printf("2")
 		log.Fatal(err)
