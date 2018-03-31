@@ -1,0 +1,10 @@
+# .goreleaser.yml
+# Build customization
+builds:
+  - binary: cortado
+    goos:
+      - windows
+      - darwin
+      - linux
+    goarch:
+      - amd64
