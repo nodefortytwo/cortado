@@ -32,14 +32,10 @@ brew:
   # Default is the root folder.
   folder: Formula
 
-  # Caveats for the user of your binary.
-  # Default is empty.
-  caveats: "who knows"
-
   # Your app's homepage.
   # Default is empty.
   homepage: ""
 
   # Your app's description.
   # Default is empty.
-  description: "testing"
+  description: "Very simple S3 file editor that temporarily downloads a file from S3, opens it in vim and re-uploads it when you exit vim"
