@@ -3,7 +3,6 @@
 builds:
   - binary: cortado
     goos:
-      - windows
       - darwin
       - linux
     goarch:
