@@ -6,10 +6,12 @@ Very simple S3 file editor that temporarily downloads a file from S3, opens it i
 cortado [options] {bucket}
 
 Options:
+  -editor string
+        Which editor to use, only a cli editor will function properly (default "vim")
   -prefix string
-    	Key prefix to use
+        Key prefix to use
   -region string
-    	AWS Region (default "eu-west-1")
+        AWS Region (default "eu-west-1")
 ```
 pressing `tab` will auto complete object keys. currently there is no protection from opening large or binary files.
 

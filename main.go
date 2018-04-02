@@ -34,6 +34,7 @@ func main() {
 
 	region := flag.String("region", "eu-west-1", "AWS Region")
 	prefix := flag.String("prefix", "", "Key prefix to use")
+	editor := flag.String("editor", "vim", "Which editor to use, only a cli editor will function properly")
 	flag.Parse()
 
 	bucket := flag.Arg(0)
@@ -65,7 +66,7 @@ func main() {
 	defer cleanUp(fpath)
 
 	hash, _ := md5sum(fpath)
-	editFile(fpath)
+	editFile(fpath, *editor)
 	editedHash, _ := md5sum(fpath)
 
 	if hash != editedHash {
@@ -81,8 +82,8 @@ func exitErrorf(msg string, args ...interface{}) {
 	os.Exit(1)
 }
 
-func editFile(fpath string) {
-	cmd := exec.Command("vim", fpath)
+func editFile(fpath string, editor string) {
+	cmd := exec.Command(editor, fpath)
 
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
