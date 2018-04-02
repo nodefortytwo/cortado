@@ -21,6 +21,10 @@ import (
 	"github.com/c-bata/go-prompt"
 )
 
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
+
 func main() {
 
 	flag.Usage = func() {
@@ -66,7 +70,7 @@ func main() {
 	if hash != editedHash {
 		uploadFile(bucket, key, fpath, sess)
 	} else {
-		exitErrorf("No changes made")
+		fmt.Printf("No changes made")
 	}
 
 }
@@ -113,6 +117,8 @@ func downloadFile(bucket string, key string, fpath string, sess client.ConfigPro
 		exitErrorf("Unable to download item %q, %v", key, err)
 	}
 
+	fmt.Printf("Downloaded %q to %q\n", key, fpath)
+
 	file.Close()
 }
 
@@ -154,10 +160,6 @@ func selectKey(bucket string, prefix string, sess client.ConfigProvider) string 
 	}
 
 	return key
-}
-
-func init() {
-	rand.Seed(time.Now().UnixNano())
 }
 
 func randString(n int) string {
