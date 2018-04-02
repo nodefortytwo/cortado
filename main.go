@@ -59,9 +59,10 @@ func main() {
 	}
 
 	fpath := os.TempDir() + randString(10)
+
 	downloadFile(bucket, key, fpath, sess)
 
-	defer os.Remove(fpath)
+	defer cleanUp(fpath)
 
 	hash, _ := md5sum(fpath)
 	editFile(fpath)
@@ -70,7 +71,7 @@ func main() {
 	if hash != editedHash {
 		uploadFile(bucket, key, fpath, sess)
 	} else {
-		fmt.Printf("No changes made")
+		fmt.Printf("No changes made\n")
 	}
 
 }
@@ -199,4 +200,9 @@ func md5sum(filePath string) (result string, err error) {
 
 	result = hex.EncodeToString(hash.Sum(nil))
 	return
+}
+
+func cleanUp(fpath string) {
+	fmt.Printf("Deleting %q \n", fpath)
+	os.Remove(fpath)
 }
