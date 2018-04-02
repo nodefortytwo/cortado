@@ -1,7 +1,11 @@
 package main
 
 import (
+	"crypto/md5"
+	"encoding/hex"
+	"flag"
 	"fmt"
+	"io"
 	"log"
 	"math/rand"
 	"os"
@@ -18,31 +22,52 @@ import (
 )
 
 func main() {
+
+	flag.Usage = func() {
+		fmt.Fprintf(os.Stderr, "Usage:\n%s [options] {bucket}\n\nOptions:\n", os.Args[0])
+		flag.PrintDefaults()
+	}
+
+	region := flag.String("region", "eu-west-1", "AWS Region")
+	prefix := flag.String("prefix", "", "Key prefix to use")
+	flag.Parse()
+
+	bucket := flag.Arg(0)
+	if bucket == "" {
+		flag.Usage()
+		os.Exit(1)
+	}
+
 	// Initialize a session in eu-west-1 that the SDK will use to load
 	// credentials from the shared credentials file ~/.aws/credentials.
 	sess, err := session.NewSession(&aws.Config{
-		Region: aws.String("eu-west-1")},
+		Region: aws.String(*region)},
 	)
 
 	if err != nil {
 		exitErrorf("Unable load config")
 	}
 
-	bucket := os.Args[1]
+	key := selectKey(bucket, *prefix, sess)
 
-	var prefix string
-	if len(os.Args) == 3 {
-		prefix = os.Args[2]
+	if len(key) == 0 {
+		exitErrorf("No key found, or selected")
 	}
 
-	key := selectKey(bucket, prefix, sess)
-
 	fpath := os.TempDir() + randString(10)
-
 	downloadFile(bucket, key, fpath, sess)
+
+	defer os.Remove(fpath)
+
+	hash, _ := md5sum(fpath)
 	editFile(fpath)
-	uploadFile(bucket, key, fpath, sess)
-	os.Remove(fpath)
+	editedHash, _ := md5sum(fpath)
+
+	if hash != editedHash {
+		uploadFile(bucket, key, fpath, sess)
+	} else {
+		exitErrorf("No changes made")
+	}
 
 }
 
@@ -120,7 +145,7 @@ func selectKey(bucket string, prefix string, sess client.ConfigProvider) string 
 	var key string
 
 	if len(resp.Contents) == 0 {
-		panic("no matches")
+		key = ""
 	} else if len(resp.Contents) > 1 {
 		fmt.Println("Please start typing key")
 		key = prompt.Input("> ", buildCompleter(resp.Contents))
@@ -156,4 +181,21 @@ func buildCompleter(contents []*s3.Object) func(d prompt.Document) []prompt.Sugg
 
 		return prompt.FilterHasPrefix(s, d.GetWordBeforeCursor(), true)
 	}
+}
+
+func md5sum(filePath string) (result string, err error) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return
+	}
+	defer file.Close()
+
+	hash := md5.New()
+	_, err = io.Copy(hash, file)
+	if err != nil {
+		return
+	}
+
+	result = hex.EncodeToString(hash.Sum(nil))
+	return
 }
