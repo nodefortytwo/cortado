@@ -16,11 +16,11 @@ pressing `tab` will auto complete object keys. currently there is no protection 
 # Installation
 getting started with Cortado is easy:
 ```
-brew tap nodefortytwo/homebrew-tap`
+brew tap nodefortytwo/homebrew-tap
 ```
 then
 ```
-brew install cortado`
+brew install cortado
 ```
 
 # Caveats
