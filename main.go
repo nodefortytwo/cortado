@@ -177,8 +177,7 @@ func buildCompleter(contents []*s3.Object) func(d prompt.Document) []prompt.Sugg
 		s := []prompt.Suggest{}
 
 		for _, obj := range contents {
-			suggestion := prompt.Suggest{Text: *obj.Key}
-			s = append(s, suggestion)
+			s = append(s, prompt.Suggest{Text: *obj.Key})
 		}
 
 		return prompt.FilterHasPrefix(s, d.GetWordBeforeCursor(), true)
