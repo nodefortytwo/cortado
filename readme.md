@@ -20,7 +20,7 @@ getting started with Cortado is easy:
 ```
 brew tap nodefortytwo/homebrew-tap
 ```
-Note: `brew` will need an github access token for reasons... you can create one here if you have't already https://github.com/settings/tokens
+Note: `brew` will need an github access token for reasons... you can [create one here](https://github.com/settings/tokens/new?scopes=&description=Homebrew) if you have't already
 
 then
 ```
